@@ -1,46 +1,55 @@
 package com.example.taskjet
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.taskjet.ui.theme.TaskJetTheme
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import android.content.DialogInterface
 
-class MainActivity : ComponentActivity() {
+
+class MainActivity : AppCompatActivity(), DialogCloseListener {
+
+    private lateinit var db: DatabaseHandler
+    private lateinit var tasksRecyclerView: RecyclerView
+    private lateinit var tasksAdapter: Adapter
+    private lateinit var fab: FloatingActionButton
+    private lateinit var taskList: MutableList<Model>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            TaskJetTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
-            }
+
+        setContentView(R.layout.activity_main)
+        supportActionBar?.hide()
+
+        db = DatabaseHandler(this)
+        db.openDatabase()
+
+        tasksRecyclerView = findViewById(R.id.tasksRecyclerView)
+        tasksRecyclerView.layoutManager = LinearLayoutManager(this)
+        tasksAdapter = Adapter(db, this)
+        tasksRecyclerView.adapter = tasksAdapter
+
+        val itemTouchHelper = ItemTouchHelper(RecyclerItemTouchHelper(tasksAdapter))
+        itemTouchHelper.attachToRecyclerView(tasksRecyclerView)
+
+        fab = findViewById(R.id.Addbutton)
+
+        taskList = db.getAllTasks().toMutableList()
+        taskList.reverse()
+
+        tasksAdapter.setTasks(taskList)
+
+        fab.setOnClickListener {
+            NewTask.newInstance().show(supportFragmentManager, NewTask.TAG)
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TaskJetTheme {
-        Greeting("Android")
+    override fun handleDialogClose(dialog: DialogInterface) {
+        taskList = db.getAllTasks().toMutableList()
+        taskList.reverse()
+        tasksAdapter.setTasks(taskList)
+        tasksAdapter.notifyDataSetChanged()
     }
 }

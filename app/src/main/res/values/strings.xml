@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">TaskJet</string>
+    <string name="save">Save</string>
+    <string name="new_task">Add New Task</string>
+    <string name="tasks">Your Tasks</string>
+    <string name="add">Add</string>
+    <string name="click_here_to_add">Click Here To Add</string>
+    <string name="startscreen">startscreen</string>
 </resources>
